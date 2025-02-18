@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { FontToggle } from '@/components/FontToggle';
 import { useFont } from '@/contexts/FontContext';
@@ -15,6 +15,8 @@ export default function InputPage() {
   // handleKeyPress를 useCallback으로 최적화하고 키 입력 큐 추가
   const keyQueueRef = useRef<string[]>([]);
   const isProcessingRef = useRef(false);
+
+  const [inputMode, setInputMode] = useState<"none" | "text">("none");
 
   // 커서 위치를 복원하는 useEffect 추가
   useEffect(() => {
@@ -194,7 +196,7 @@ export default function InputPage() {
                 onSelect={handleSelect}
                 spellCheck={false}
                 rows={3}
-                inputMode="none"
+                inputMode={inputMode}
                 className={`w-full px-4 py-3 text-lg border rounded-lg shadow-sm focus:outline-none text-gray-800 min-h-[96px] transition-height duration-200 ${
                   useCustomFont ? 'font-custom' : 'font-sans'
                 }`}
@@ -244,6 +246,7 @@ export default function InputPage() {
           onDelete={handleDelete}
           useCustomFont={useCustomFont}
           textareaRef={inputRef}
+          onInputModeChange={setInputMode}
         />
       </div>
     </div>

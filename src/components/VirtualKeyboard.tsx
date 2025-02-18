@@ -9,9 +9,10 @@ interface VirtualKeyboardProps {
   onDelete: () => void;
   useCustomFont: boolean;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  onInputModeChange: (mode: "none" | "text") => void;
 }
 
-export function VirtualKeyboard({ onKeyPress, onDelete, useCustomFont, textareaRef }: VirtualKeyboardProps) {
+export function VirtualKeyboard({ onKeyPress, onDelete, useCustomFont, textareaRef, onInputModeChange }: VirtualKeyboardProps) {
   const { toggleFont } = useFont();
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -31,6 +32,7 @@ export function VirtualKeyboard({ onKeyPress, onDelete, useCustomFont, textareaR
       if (typeof viewportHeight === 'number') {
         const isNativeKeyboardVisible = viewportHeight < windowHeight;
         setIsVisible(!isNativeKeyboardVisible);
+        onInputModeChange(isNativeKeyboardVisible ? "text" : "none");
       }
     };
 
@@ -42,10 +44,11 @@ export function VirtualKeyboard({ onKeyPress, onDelete, useCustomFont, textareaR
         visualViewport.removeEventListener('resize', handleVisibilityChange);
       };
     }
-  }, []);
+  }, [onInputModeChange]);
 
   const handleKeyboardToggle = () => {
     setIsVisible(false);
+    onInputModeChange("text");
     if (textareaRef?.current) {
       textareaRef.current.focus();
     }
