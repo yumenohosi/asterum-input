@@ -119,13 +119,13 @@ export function VirtualKeyboard({ onKeyPress, onDelete, useCustomFont, textareaR
                     useCustomFont ? 'font-custom' : 'font-["Pretendard"]'
                   } ${
                     key === 'DEL' 
-                      ? 'bg-red-500 text-white hover:bg-red-600 w-20 flex items-center justify-center'
+                      ? 'bg-red-500 text-white hover:bg-red-600 w-16 flex items-center justify-center'
                       : key === 'SHIFT'
-                      ? `bg-gray-500 text-white hover:bg-gray-600 w-20 flex items-center justify-center ${isShiftPressed ? 'bg-gray-700' : ''}`
+                      ? `bg-gray-500 text-white hover:bg-gray-600 w-16 flex items-center justify-center ${isShiftPressed ? 'bg-gray-700' : ''}`
                       : key === 'SPACE'
-                      ? 'bg-gray-500 text-white hover:bg-gray-600 flex-1 flex items-center justify-center'
+                      ? 'bg-gray-500 text-white hover:bg-gray-600 w-40 flex items-center justify-center'
                       : key === 'FONT' || key === 'KEYBOARD' || key === 'ENTER'
-                      ? 'bg-gray-500 text-white hover:bg-gray-600 w-20 flex items-center justify-center'
+                      ? 'bg-gray-500 text-white hover:bg-gray-600 w-14 flex items-center justify-center'
                       : 'bg-white hover:bg-gray-50 active:bg-gray-100 w-10 text-gray-800'
                   } font-medium text-lg shadow-sm transition-colors`}
                   onClick={() => {
