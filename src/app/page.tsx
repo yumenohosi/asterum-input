@@ -181,6 +181,13 @@ export default function InputPage() {
     }
   };
 
+  const handleClearAll = () => {
+    setText('');
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <FontToggle />
@@ -230,6 +237,14 @@ export default function InputPage() {
               </div>
             </div>
             <div className="flex gap-2">
+              <button
+                onClick={handleClearAll}
+                className={`flex-1 py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium ${
+                  useCustomFont ? 'font-custom' : 'font-sans'
+                }`}
+              >
+                {useCustomFont ? 'ㅁㅗㄷㅜ ㅈㅣㅇㅜㄱㅣ' : '모두 지우기'}
+              </button>
               <button
                 onClick={handleCapture}
                 className={`flex-1 py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium ${
