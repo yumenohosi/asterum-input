@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { FontToggle } from '@/components/FontToggle';
 import { useFont } from '@/contexts/FontContext';
@@ -12,21 +12,49 @@ export default function InputPage() {
   const textAreaContainerRef = useRef<HTMLDivElement>(null);
   const cursorPositionRef = useRef(0);
 
-  const handleKeyPress = (value: string) => {
-    if (!inputRef.current) return;
+  // handleKeyPress를 useCallback으로 최적화하고 키 입력 큐 추가
+  const keyQueueRef = useRef<string[]>([]);
+  const isProcessingRef = useRef(false);
 
-    const start = inputRef.current.selectionStart || 0;
-    const end = inputRef.current.selectionEnd || 0;
-    const newValue = text.slice(0, start) + value + text.slice(end);
-    
-    const newPosition = start + value.length;
-    
-    setText(newValue);
-    cursorPositionRef.current = newPosition;
+  const processKeyQueue = useCallback(async () => {
+    if (isProcessingRef.current || keyQueueRef.current.length === 0) return;
 
-    inputRef.current.focus();
-    inputRef.current.setSelectionRange(newPosition, newPosition);
-  };
+    isProcessingRef.current = true;
+    
+    while (keyQueueRef.current.length > 0) {
+      const value = keyQueueRef.current.shift();
+      if (!value || !inputRef.current) continue;
+
+      const start = inputRef.current.selectionStart || 0;
+      const end = inputRef.current.selectionEnd || 0;
+      const newValue = text.slice(0, start) + value + text.slice(end);
+      const newPosition = start + value.length;
+
+      setText(newValue);
+      cursorPositionRef.current = newPosition;
+
+      inputRef.current.focus();
+      inputRef.current.setSelectionRange(newPosition, newPosition);
+
+      // 매우 작은 지연을 추가하여 DOM 업데이트를 보장
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    isProcessingRef.current = false;
+  }, [text, setText]);
+
+  const handleKeyPress = useCallback((value: string) => {
+    keyQueueRef.current.push(value);
+    processKeyQueue();
+  }, [processKeyQueue]);
+
+  // 컴포넌트가 언마운트될 때 큐 초기화
+  useEffect(() => {
+    return () => {
+      keyQueueRef.current = [];
+      isProcessingRef.current = false;
+    };
+  }, []);
 
   const handleDelete = () => {
     if (!inputRef.current) return;
@@ -173,7 +201,8 @@ export default function InputPage() {
                   lineHeight: '1.5',
                   backgroundColor: 'white',
                   borderRadius: '0.5rem',
-                  border: '1px solid #e2e8f0'
+                  border: '1px solid #e2e8f0',
+                  color: '#000000'
                 }}
               >
                 {text || (useCustomFont ? 'ㅌㅔㄱㅅㅡㅌㅡㄹㅡㄹ ㅇㅣㅂㄹㅕㄱㅎㅏㅅㅔㅇㅛ' : '텍스트를 입력하세요')}
