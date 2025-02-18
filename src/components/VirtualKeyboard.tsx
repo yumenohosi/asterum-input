@@ -8,7 +8,7 @@ interface VirtualKeyboardProps {
   onKeyPress: (key: string) => void;
   onDelete: () => void;
   useCustomFont: boolean;
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 }
 
 export function VirtualKeyboard({ onKeyPress, onDelete, useCustomFont, textareaRef }: VirtualKeyboardProps) {
@@ -21,16 +21,25 @@ export function VirtualKeyboard({ onKeyPress, onDelete, useCustomFont, textareaR
   // 네이티브 키보드 visibility 감지
   useEffect(() => {
     const handleVisibilityChange = () => {
-      // 모바일 브라우저에서 가상키보드가 표시될 때 viewport 높이가 변경됨
-      const isNativeKeyboardVisible = window.visualViewport?.height < window.innerHeight;
-      setIsVisible(!isNativeKeyboardVisible);
+      // null 체크 추가
+      if (!window.visualViewport) return;
+      
+      const viewportHeight = window.visualViewport.height;
+      const windowHeight = window.innerHeight;
+      
+      // null 체크 후 비교
+      if (typeof viewportHeight === 'number') {
+        const isNativeKeyboardVisible = viewportHeight < windowHeight;
+        setIsVisible(!isNativeKeyboardVisible);
+      }
     };
 
-    // visualViewport API 지원 확인
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleVisibilityChange);
+    // visualViewport 존재 여부 체크
+    const visualViewport = window.visualViewport;
+    if (visualViewport) {
+      visualViewport.addEventListener('resize', handleVisibilityChange);
       return () => {
-        window.visualViewport.removeEventListener('resize', handleVisibilityChange);
+        visualViewport.removeEventListener('resize', handleVisibilityChange);
       };
     }
   }, []);
