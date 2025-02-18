@@ -157,11 +157,9 @@ export default function InputPage() {
         textAreaContainerRef.current.style.opacity = '0';
         
         const image = canvas.toDataURL('image/png');
-
-        // Blob으로 변환
         const blob = await (await fetch(image)).blob();
         
-        // Web Share API 지원 여부 확인
+        // Web Share API를 통한 공유 시도
         if (navigator.share) {
           try {
             await navigator.share({
@@ -170,26 +168,15 @@ export default function InputPage() {
               ]
             });
           } catch (error) {
-            console.log('공유 취소 또는 에러:', error);
-            // 공유 실패시 다운로드로 폴백
-            downloadImage(image);
+            console.log('공유가 취소되었거나 에러가 발생했습니다:', error);
           }
         } else {
-          // Web Share API를 지원하지 않는 경우 다운로드
-          downloadImage(image);
+          console.log('이 브라우저는 공유 기능을 지원하지 않습니다.');
         }
       } catch (error) {
         console.error('캡처 중 오류 발생:', error);
       }
     }
-  };
-
-  // 다운로드 함수 분리
-  const downloadImage = (imageData: string) => {
-    const link = document.createElement('a');
-    link.href = imageData;
-    link.download = 'captured-text.png';
-    link.click();
   };
 
   return (
@@ -256,6 +243,7 @@ export default function InputPage() {
           onKeyPress={handleKeyPress}
           onDelete={handleDelete}
           useCustomFont={useCustomFont}
+          textareaRef={inputRef}
         />
       </div>
     </div>
