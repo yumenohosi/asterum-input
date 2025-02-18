@@ -10,11 +10,21 @@ export default function InputPage() {
   const { useCustomFont, text, setText } = useFont();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const textAreaContainerRef = useRef<HTMLDivElement>(null);
-  const cursorPositionRef = useRef(0);
+  const cursorPositionRef = useRef<number | null>(null);
 
   // handleKeyPress를 useCallback으로 최적화하고 키 입력 큐 추가
   const keyQueueRef = useRef<string[]>([]);
   const isProcessingRef = useRef(false);
+
+  // 커서 위치를 복원하는 useEffect 추가
+  useEffect(() => {
+    if (inputRef.current && cursorPositionRef.current !== null) {
+      inputRef.current.setSelectionRange(
+        cursorPositionRef.current,
+        cursorPositionRef.current
+      );
+    }
+  }, [text]); // text가 변경될 때마다 커서 위치 복원
 
   const processKeyQueue = useCallback(async () => {
     if (isProcessingRef.current || keyQueueRef.current.length === 0) return;
@@ -29,19 +39,34 @@ export default function InputPage() {
       const end = inputRef.current.selectionEnd || 0;
       const newValue = text.slice(0, start) + value + text.slice(end);
       const newPosition = start + value.length;
-
+      
       setText(newValue);
       cursorPositionRef.current = newPosition;
 
+      // focus와 커서 위치 즉시 설정
       inputRef.current.focus();
       inputRef.current.setSelectionRange(newPosition, newPosition);
 
-      // 매우 작은 지연을 추가하여 DOM 업데이트를 보장
+      // 작은 지연을 추가하여 DOM 업데이트를 보장
       await new Promise(resolve => setTimeout(resolve, 10));
     }
 
     isProcessingRef.current = false;
   }, [text, setText]);
+
+  // useEffect 수정 - 커서 위치 복원 로직 개선
+  useEffect(() => {
+    if (inputRef.current && cursorPositionRef.current !== null) {
+      const position = cursorPositionRef.current;
+      // setTimeout을 사용하여 리렌더링 후 커서 위치 설정
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.setSelectionRange(position, position);
+        }
+      }, 0);
+    }
+  }, [text]);
 
   const handleKeyPress = useCallback((value: string) => {
     keyQueueRef.current.push(value);
@@ -82,14 +107,22 @@ export default function InputPage() {
     }
   };
 
+  // 텍스트 영역의 선택/커서 위치 변경 이벤트 처리
+  const handleSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    cursorPositionRef.current = e.currentTarget.selectionStart;
+  };
+
+  // 텍스트 변경 이벤트 처리
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
-    cursorPositionRef.current = e.target.selectionStart || 0;
+    cursorPositionRef.current = e.target.selectionStart;
     adjustTextareaHeight();
   };
 
-  const handleSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
-    cursorPositionRef.current = e.currentTarget.selectionStart || 0;
+  // 입력 이벤트 처리
+  const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    setText(e.currentTarget.value);
+    cursorPositionRef.current = e.currentTarget.selectionStart;
   };
 
   // textarea 높이 자동 조절을 위한 함수
@@ -108,11 +141,6 @@ export default function InputPage() {
   useEffect(() => {
     adjustTextareaHeight();
   }, [text]);
-
-  const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
-    setText(e.currentTarget.value);
-    cursorPositionRef.current = e.currentTarget.selectionStart || 0;
-  };
 
   const handleCapture = async () => {
     if (textAreaContainerRef.current) {
@@ -200,9 +228,13 @@ export default function InputPage() {
                   fontSize: '1.125rem',
                   lineHeight: '1.5',
                   backgroundColor: 'white',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #e2e8f0',
-                  color: '#000000'
+                  borderRadius: '0',
+                  border: 'none',
+                  color: 'rgb(0, 0, 0)',
+                  fontWeight: '400',
+                  WebkitFontSmoothing: 'none',
+                  MozOsxFontSmoothing: 'none',
+                  textRendering: 'geometricPrecision'
                 }}
               >
                 {text || (useCustomFont ? 'ㅌㅔㄱㅅㅡㅌㅡㄹㅡㄹ ㅇㅣㅂㄹㅕㄱㅎㅏㅅㅔㅇㅛ' : '텍스트를 입력하세요')}
