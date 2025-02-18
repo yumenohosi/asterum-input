@@ -17,7 +17,6 @@ export function VirtualKeyboard({ onKeyPress, onDelete, useCustomFont, textareaR
   const [isVisible, setIsVisible] = useState(true);
   const inputBufferRef = useRef<string[]>([]);
   const isProcessingRef = useRef(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // 네이티브 키보드 visibility 감지
   useEffect(() => {
