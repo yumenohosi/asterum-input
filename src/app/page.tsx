@@ -243,7 +243,7 @@ export default function InputPage() {
                   useCustomFont ? 'font-custom' : 'font-sans'
                 }`}
               >
-                {useCustomFont ? 'ㅁㅗㄷㅜ ㅈㅣㅇㅜㄱㅣ' : '모두 지우기'}
+                {useCustomFont ? 'ㅈㅣㅇㅜㄱㅣ' : '지우기'}
               </button>
               <button
                 onClick={handleCapture}
