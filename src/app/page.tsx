@@ -144,10 +144,9 @@ export default function InputPage() {
     adjustTextareaHeight();
   }, [text]);
 
-  const handleCapture = async () => {
+  const captureToImage = async () => {
     if (textAreaContainerRef.current) {
       try {
-        // 캡처 전에 opacity만 변경
         textAreaContainerRef.current.style.opacity = '1';
         
         const canvas = await html2canvas(textAreaContainerRef.current, {
@@ -155,30 +154,50 @@ export default function InputPage() {
           scale: 2,
         });
         
-        // 캡처 후 opacity 복원
         textAreaContainerRef.current.style.opacity = '0';
         
         const image = canvas.toDataURL('image/png');
         const blob = await (await fetch(image)).blob();
-        
-        // Web Share API를 통한 공유 시도
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              files: [
-                new File([blob], 'captured-text.png', { type: 'image/png' })
-              ]
-            });
-          } catch (error) {
-            console.log('공유가 취소되었거나 에러가 발생했습니다:', error);
-          }
-        } else {
-          console.log('이 브라우저는 공유 기능을 지원하지 않습니다.');
-        }
+        return blob;
       } catch (error) {
         console.error('캡처 중 오류 발생:', error);
+        return null;
       }
     }
+    return null;
+  };
+
+  const handleShare = async () => {
+    const imageBlob = await captureToImage();
+    if (!imageBlob) return;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          files: [
+            new File([imageBlob], 'captured-text.png', { type: 'image/png' })
+          ]
+        });
+      } catch (error) {
+        console.log('공유가 취소되었거나 에러가 발생했습니다:', error);
+      }
+    } else {
+      console.log('이 브라우저는 공유 기능을 지원하지 않습니다.');
+    }
+  };
+
+  const handleSave = async () => {
+    const imageBlob = await captureToImage();
+    if (!imageBlob) return;
+
+    const url = window.URL.createObjectURL(imageBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'captured-text.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   };
 
   const handleClearAll = () => {
@@ -246,12 +265,20 @@ export default function InputPage() {
                 {useCustomFont ? 'ㅈㅣㅇㅜㄱㅣ' : '지우기'}
               </button>
               <button
-                onClick={handleCapture}
+                onClick={handleShare}
                 className={`flex-1 py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium ${
                   useCustomFont ? 'font-custom' : 'font-sans'
                 }`}
               >
-                {useCustomFont ? 'ㅋㅐㅂㅊㅓ' : '캡처'}
+                {useCustomFont ? 'ㄱㅗㅇㅇㅠ' : '공유'}
+              </button>
+              <button
+                onClick={handleSave}
+                className={`flex-1 py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium ${
+                  useCustomFont ? 'font-custom' : 'font-sans'
+                }`}
+              >
+                {useCustomFont ? 'ㅈㅓㅈㅏㅇ' : '저장'}
               </button>
             </div>
           </div>
